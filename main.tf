@@ -4,8 +4,6 @@ locals {
   my_internet_ip = "20.205.237.39"
 }
 
-data "azurerm_subscriptions" "current" {}
-
 # Create a resource group
 resource "azurerm_resource_group" "example" {
   name     = "redhat_vm_image_demo"
@@ -96,7 +94,7 @@ resource "azurerm_network_security_group" "example" {
 
 # Create a virtual machine
 resource "azurerm_linux_virtual_machine" "example" {
-  name                  = "rhel-86-gen2-gitlab"
+  name                  = "rhel-86-gen2"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   size                  = "Standard_D2s_v3"
@@ -155,11 +153,8 @@ resource "null_resource" "install_and_update" {
 
   provisioner "remote-exec" {
     inline = [
-      "GITLAB_EE_PASSWORD=\"${local.admin_password}\"",
       "sudo yum update -y",
       "sudo yum install -y git sshpass make gcc openssl-devel bzip2-devel libffi-devel perl python39 ca-certificates",
-      "curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash",
-      "sudo GITLAB_ROOT_PASSWORD=\"$GITLAB_EE_PASSWORD\" dnf install -y gitlab-ee",
       "sudo yum update -y",
       "sudo yum clean all"
     ]
@@ -217,7 +212,7 @@ resource "null_resource" "generalize_vm" {
 
 # Create an image from the generalized vm
 resource "azurerm_image" "example" {
-  name                      = "rhel-86-gen2-gitlab"
+  name                      = "rhel-86-gen2"
   location                  = azurerm_resource_group.example.location
   resource_group_name       = azurerm_resource_group.example.name
   hyper_v_generation        = "V2"
